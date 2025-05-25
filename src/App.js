@@ -1,96 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Container, Typography, CircularProgress } from '@mui/material';
-import SearchBar from './SearchBar';
-import NameList from './NameList';
-import NameDetails from './NameDatails';
+import React, { useState } from 'react';
+import { Container, Typography, CircularProgress, Tabs, Tab, Box } from '@mui/material';
+import NameEvolution from './components/NameEvolution';
+import TopNamesByLocation from './components/TopNamesByLocation';
+import NameComparison from './components/NameComparison';
 
 function App() {
-  const [names, setNames] = useState([]);
-  const [selectedName, setSelectedName] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState(0);
 
-  const fetchTopNames = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get('https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking');
-      const ranked = res.data[0]?.res || [];
-      setNames(ranked.map((item, index) => ({
-        nome: item.nome,
-        frequencia: item.frequencia,
-        ranking: index + 1,
-      })));
-    } catch (err) {
-      console.error('Erro ao buscar ranking:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchRankingsByDecade = async (name, startYear, endYear) => {
-    const startDecade = Math.floor(startYear / 10) * 10;
-    const endDecade = Math.floor(endYear / 10) * 10;
-    const rankings = [];
-
-    for (let decade = startDecade; decade <= endDecade; decade += 10) {
-      try {
-        const res = await axios.get('https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking', {
-          params: { decada: decade }
-        });
-        const list = res.data[0]?.res || [];
-        const found = list.find((item) => item.nome.toLowerCase() === name.toLowerCase());
-        rankings.push({
-          decada: decade,
-          ranking: found ? list.indexOf(found) + 1 : null,
-          frequencia: found?.frequencia || 0
-        });
-      } catch (error) {
-        console.error(`Erro ao buscar ranking da década ${decade}:`, error);
-      }
-    }
-
-    return rankings;
-  };
-
-  const fetchNameDetails = async (name, startYear, endYear) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`https://servicodados.ibge.gov.br/api/v2/censos/nomes/${name}`, {
-        params: { inicio: startYear, fim: endYear },
-      });
-
-      const rankings = await fetchRankingsByDecade(name, startYear, endYear);
-
-      setSelectedName({
-        nome: name,
-        data: res.data,
-        rankings
-      });
-    } catch (err) {
-      console.error('Erro ao buscar nome:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTopNames();
-  }, []);
+  const handleTabChange = (event, newValue) => setTab(newValue);
 
   return (
     <Container maxWidth="md">
       <Typography variant="h3" gutterBottom mt={4}>
-        Nomes Mais Comuns no Brasil
+        Sistema de Evolução de Nomes - IBGE
       </Typography>
-      <SearchBar onSearch={fetchNameDetails} />
-      {loading ? (
-        <CircularProgress />
-      ) : (
-        <>
-          <NameList names={names} onSelect={fetchNameDetails} />
-          {selectedName && <NameDetails nameData={selectedName} />}
-        </>
-      )}
+      <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 3 }}>
+        <Tab label="Evolução de um Nome" />
+        <Tab label="Top 3 por Localidade" />
+        <Tab label="Comparação de Nomes" />
+      </Tabs>
+      <Box hidden={tab !== 0}>
+        <NameEvolution />
+      </Box>
+      <Box hidden={tab !== 1}>
+        <TopNamesByLocation />
+      </Box>
+      <Box hidden={tab !== 2}>
+        <NameComparison />
+      </Box>
     </Container>
   );
 }
