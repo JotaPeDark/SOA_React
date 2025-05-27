@@ -1,3 +1,12 @@
+Integrantes do grupo:
+
+Nome: Anna Júlia Duarte Prando R.A: 22045748-2; 
+Nome: João Pedro dos Santos Lussani R.A: 22014550-2; 
+Nome: Wesley dos Santos David R.A: 22171156-2
+
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
